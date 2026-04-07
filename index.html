@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Arbitrage Scan</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
+        .card { background: #1e1e1e; border-radius: 15px; padding: 20px; margin: 10px auto; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .price { font-size: 24px; font-weight: bold; color: #4CAF50; }
+        .spread { font-size: 18px; color: #ff9800; margin-top: 10px; }
+        .update-time { font-size: 12px; color: #888; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>Мониторинг Спредов</h2>
+    
+    <div class="card">
+        <h3>BTC / USDT</h3>
+        <div id="data-container">Загрузка данных...</div>
+    </div>
+
+    <div class="update-time" id="time"></div>
+
+    <script>
+        async function loadPrices() {
+            try {
+                // Добавляем случайное число в конце, чтобы браузер не брал старые данные из кэша
+                const response = await fetch('data.json?nocache=' + Math.random());
+                const data = await response.json();
+                
+                const binance = data.binance;
+                const bybit = data.bybit;
+                const diff = Math.abs(binance - bybit);
+                const spread = ((diff / Math.min(binance, bybit)) * 100).toFixed(2);
+
+                document.getElementById('data-container').innerHTML = `
+                    <div>Binance: <span class="price">$${binance}</span></div>
+                    <div>Bybit: <span class="price">$${bybit}</span></div>
+                    <div class="spread">Спред: ${spread}%</div>
+                `;
+                
+                document.getElementById('time').innerText = "Последнее обновление: " + new Date().toLocaleTimeString();
+            } catch (e) {
+                document.getElementById('data-container').innerText = "Данные еще не собраны. Подождите запуска скрипта.";
+            }
+        }
+
+        loadPrices();
+        // Обновляем данные каждые 30 секунд (если файл на сервере изменится)
+        setInterval(loadPrices, 30000);
+    </script>
+</body>
+</html>
